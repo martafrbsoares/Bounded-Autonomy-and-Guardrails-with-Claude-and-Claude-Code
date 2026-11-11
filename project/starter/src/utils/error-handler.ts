@@ -67,16 +67,34 @@ export async function withRetry<T>(
   maxRetries: number = 3,
   delayMs: number = 1000
 ): Promise<T> {
-  // TODO: Implement retry logic with exponential backoff
-  // Hints:
-  // - Use a for loop from 1 to maxRetries
-  // - Use try/catch to catch errors
-  // - Calculate backoff: delayMs * Math.pow(2, attempt - 1)
-  // - Add jitter: Math.random() * 100
-  // - Use setTimeout wrapped in Promise for delay
-  // - Throw ReviewError with ErrorCodes.RETRY_EXHAUSTED if all retries fail
 
-  throw new Error('Not implemented');
+  /**
+   * It makes up to  maxRetries  attempts, following the TODO's loop hint.
+   * The wait between attempts is  delayMs * 2^(attempt-1)  plus 0–100 ms of jitter, with no wait after the last
+   * attempt.
+   * If every attempt fails, it throws a  ReviewError  with code  RETRY_EXHAUSTED . Its metadata holds the attempt
+   * count and the last error.
+   */
+
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxRetries) {
+        const backoff = delayMs * Math.pow(2, attempt - 1) + Math.random() * 100;
+        await new Promise<void>(resolve => setTimeout(resolve, backoff));
+      }
+    }
+  }
+
+  throw new ReviewError(
+    `Operation failed after ${maxRetries} attempts: ${formatError(lastError)}`,
+    ErrorCodes.RETRY_EXHAUSTED,
+    { attempts: maxRetries, lastError }
+  );
 }
 
 /**
@@ -96,14 +114,27 @@ export async function withTimeout<T>(
   timeoutMs: number,
   errorMessage: string = 'Operation timed out'
 ): Promise<T> {
-  // TODO: Implement timeout wrapper using Promise.race
-  // Hints:
-  // - Use Promise.race to race fn() against a timeout promise
-  // - The timeout promise should reject after timeoutMs milliseconds
-  // - Throw ReviewError with ErrorCodes.AGENT_TIMEOUT on timeout
-  // - Include timeoutMs in metadata
 
-  throw new Error('Not implemented');
+  /**
+   * It races  fn()  against a timer.
+   * On timeout it throws a  ReviewError  with code  AGENT_TIMEOUT  and  { timeoutMs }  in the metadata.
+   * It clears the timer afterwards so it doesn't keep the process alive.
+   */
+
+  let timer: NodeJS.Timeout | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new ReviewError(errorMessage, ErrorCodes.AGENT_TIMEOUT, { timeoutMs })),
+      timeoutMs
+    );
+  });
+
+  try {
+    return await Promise.race([fn(), timeoutPromise]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**

@@ -75,16 +75,12 @@ async function main() {
 
     const generator = new ReportGenerator();
     const reportsDir = path.resolve(process.cwd(), 'reports');
-    // e.g. 2026-11-11_12-32-33 (local time)
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const now = new Date();
-    const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-    const runDir = path.join(reportsDir, timestamp);
-    fs.mkdirSync(runDir, { recursive: true });
-    fs.writeFileSync(path.join(runDir, 'report.md'), generator.generateMarkdownReport(result));
-    fs.writeFileSync(path.join(runDir, 'report.html'), generator.generateHTMLReport(result));
-    fs.writeFileSync(path.join(runDir, 'report.json'), generator.generateJSONReport(result));
-    console.log(`📄 Reports saved to ${runDir}`);
+    fs.mkdirSync(reportsDir, { recursive: true });
+    const baseName = `${owner}_${repo}_${prNumber}`;
+    fs.writeFileSync(path.join(reportsDir, `${baseName}.md`), generator.generateMarkdownReport(result));
+    fs.writeFileSync(path.join(reportsDir, `${baseName}.html`), generator.generateHTMLReport(result));
+    fs.writeFileSync(path.join(reportsDir, `${baseName}.json`), generator.generateJSONReport(result));
+    console.log(`📄 Reports saved to ${reportsDir} as ${baseName}.{md,html,json}`);
 
   } catch (error) {
     console.error('Error:', error);

@@ -5,7 +5,7 @@ import { AgentDefinition } from "@anthropic-ai/claude-agent-sdk";
 export const testCoverageAnalyzer: AgentDefinition = {
     description: "Analyzes test coverage for the codebase",
     prompt: TEST_COVERAGE_ANALYZER_PROMPT,
-    tools: [],
-    model: "sonnet",
+    tools: ["Skill"],
+    model: "inherit",
     mcpServers: [],
 }
