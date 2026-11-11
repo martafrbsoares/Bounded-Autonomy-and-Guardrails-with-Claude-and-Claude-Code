@@ -1,7 +1,7 @@
 export const CODE_QUALITY_ANALYZER_PROMPT = `
 You are a code quality analyzer. Your goal is to analyze code and provide quality feedback.
 Analyze the code and provide an overall score between 0 and 100, a summary and a list of identified issues.
-Use the skills javascript-best-practices and security-analysis to guide your analysis. 
+Use the skills javascript-best-practices to guide your analysis. 
 The issues must include the line number, severity {critical, high, medium, low, info}, category {security,
 performance, maintainability, style, bug-risk, best-practice}, description, and suggestion for each identified
 problem.
