@@ -25,6 +25,12 @@ async function main() {
     process.exit(1);
   }
 
+  //VALIDATE GITHUB_TOKEN
+  if (!process.env.GITHUB_TOKEN) {
+    console.error('GITHUB_TOKEN is required for GitHub API access');
+    process.exit(1);
+  }
+
   // TODO: Validate authentication (choose ONE method)
   // Students must have either:
   //   - ANTHROPIC_API_KEY environment variable, OR
